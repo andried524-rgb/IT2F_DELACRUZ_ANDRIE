@@ -30,7 +30,6 @@ public class AdminMenu {
             System.out.println("1. View All System Users");
             System.out.println("2. View Pending Registrations");
             System.out.println("3. Approve User Account");
-            System.out.println("4. Update User Role and Status");
             System.out.println("0. Logout");
             System.out.print("Choose an option: ");
 
@@ -39,7 +38,6 @@ public class AdminMenu {
                 case "1" -> viewAllUsers();
                 case "2" -> viewPendingUsers();
                 case "3" -> approveUser();
-                case "4" -> updateUser();
                 case "0" -> {
                     System.out.println("Logged out.");
                     running = false;
@@ -89,47 +87,6 @@ public class AdminMenu {
         }
     }
 
-    private void updateUser() {
-        List<User> allUsers = userDao.getAllUsers();
-        System.out.println("\n--- UPDATE USER ROLE AND STATUS ---");
-        printUserTable(allUsers);
-
-        int targetId;
-        while (true) {
-            targetId = readIntInput("Enter the User ID to update (0 to cancel): ");
-            if (targetId == 0) {
-                System.out.println("Update cancelled.");
-                return;
-            }
-            if (targetId == currentAdmin.id()) {
-                System.out.println("WARNING: Modifying the currently active admin account is restricted.");
-                continue;
-            }
-            if (!containsId(allUsers, targetId)) {
-                System.out.println("User ID " + targetId + " does not exist. Try again.");
-                continue;
-            }
-            break;
-        }
-
-        String newRole = readValidRole();
-        if (newRole == null) {
-            System.out.println("Update cancelled.");
-            return;
-        }
-        String newStatus = readValidStatus();
-        if (newStatus == null) {
-            System.out.println("Update cancelled.");
-            return;
-        }
-
-        if (userDao.updateUserRoleAndStatus(targetId, newRole, newStatus)) {
-            System.out.println("SUCCESS: User ID " + targetId + " is now role " + newRole + " with status " + newStatus + ".");
-        } else {
-            System.out.println("Update failed. Please try again.");
-        }
-    }
-
     // ------------------------------------------------------ input helpers
 
     /** Keeps asking until the user types a whole number (never throws). */
@@ -142,36 +99,6 @@ public class AdminMenu {
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter numbers only.");
             }
-        }
-    }
-
-    /** Returns a valid role, or null if the admin entered 0 to cancel. */
-    private String readValidRole() {
-        while (true) {
-            System.out.print("Enter new role " + Roles.ALL + " (0 to cancel): ");
-            String input = scanner.nextLine().trim().toUpperCase();
-            if (input.equals("0")) {
-                return null;
-            }
-            if (Roles.ALL.contains(input)) {
-                return input;
-            }
-            System.out.println("Invalid role. Valid roles are: " + String.join(", ", Roles.ALL));
-        }
-    }
-
-    /** Returns a valid status, or null if the admin entered 0 to cancel. */
-    private String readValidStatus() {
-        while (true) {
-            System.out.print("Enter new status " + Statuses.ASSIGNABLE + " (0 to cancel): ");
-            String input = scanner.nextLine().trim().toUpperCase();
-            if (input.equals("0")) {
-                return null;
-            }
-            if (Statuses.ASSIGNABLE.contains(input)) {
-                return input;
-            }
-            System.out.println("Invalid status. Valid statuses are: " + String.join(", ", Statuses.ASSIGNABLE));
         }
     }
 
